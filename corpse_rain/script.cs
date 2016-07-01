@@ -1,17 +1,50 @@
-private static List<IProfile> pProfileList = new List<IProfile>();
-private static List<DeathSentence> DeathSentences = new List<DeathSentence>();
-private IProfile cProfile;
-private IPlayer cPly;
-private IObjectTimerTrigger tTrigger;
-private IObjectTimerTrigger randTimeTTrigger;
+// Settings vars
+// Primary tick speed ratio,
+// affects the rain delay
+int[] tickRand = {200, 900};
 
-private int deadPlyCount;
+// Changes the 'rain stage' after
+// some rand time ratio, making it 
+// heavier or not
+int[] rainStageRand = {3000, 5000};
+
+// Drops life time, makes 
+// them disapear after
+// XXX miliseconds
+int dropsLifeTime = 2000;
+
+// Objects that will rain list
+// "PLAYER" is a special flag
+// to make a player rain
+// Remove the "//" in the line
+// to select which objects
+string[] rainDrops = {
+    "PLAYER"
+};
+
+// Script vars
+
+// A list of all players skins loaded
+// in the current game
+private static List<IProfile> pProfileList = new List<IProfile>();
+
+// Death sentences object, used to delete objects after some time
+private static List<DeathSentence> DeathSentences = new List<DeathSentence>();
+
+// Tick trigger
+private IObjectTimerTrigger tickTrigger;
+
+// Randomize time trigger, used to
+// make the rain more dynamic
+private IObjectTimerTrigger randomizeTimeTrigger;
+
 //Rand
 Random rand = new Random();
 
+// Constants
+const float DISTANCE_FROM_TOP = 50f;
+
 public void OnStartup(){
-    Game.SetAllowedCameraModes(CameraMode.Static);
-    Game.SetCurrentCameraMode(CameraMode.Static);
     foreach(IObjectPlayerProfileInfo pInfo in Game.GetObjectsByName("PlayerProfileInfo")){
         pProfileList.Add(pInfo.GetProfile());
     }
@@ -20,42 +53,48 @@ public void OnStartup(){
         pProfileList.Add(ply.GetProfile());
     }
 
-    tTrigger = Utils.SetTimer("Tick", "", 0, rand.Next(100, 900));
-    randTimeTTrigger = Utils.SetTimer("RandomizeDelay", "", 0, 3000);
+    tickTrigger = Utils.SetTimer("Tick", "", 0, rand.Next(tickRand[0], tickRand[1]));
+    randomizeTimeTrigger = Utils.SetTimer("RandomizeDelay", "", rainStageRand[0], rainStageRand[1]);
     Utils.SetTimer("DeleteGlibets", "", 0, 5000);
-    Utils.SetTimer("CheckDeathSentences", "", 0, 200);
+    Utils.SetTimer("CheckDeathSentences", "", 0, 100);
 
     //Game.CreatePlayer(Game.GetSingleObjectByCustomID("spawn").GetWorldPosition());
 }
 
 public void Tick(TriggerArgs args){
-    SpawnRandomPlayer(args);
+   SpawnDrop(rainDrops[rand.Next(0, rainDrops.Length)]);
+}
+
+public void SpawnDrop(string name) {
+    if(name == "PLAYER") {
+        SpawnRandomPlayer();
+    }
 }
 
 public void RandomizeDelay(TriggerArgs args){
-    tTrigger.SetIntervalTime(rand.Next(100, 900));
-    randTimeTTrigger.SetIntervalTime(rand.Next(3000, 5000));
+    tickTrigger.SetIntervalTime(rand.Next(tickRand[0], tickRand[1]));
+    randomizeTimeTrigger.SetIntervalTime(rand.Next(rainStageRand[0], rainStageRand[1]));
 }
 
-public void SpawnRandomPlayer(TriggerArgs args){
+public void SpawnRandomPlayer(){
     if(Game.IsGameOver){
         return;
     }
-    cProfile = pProfileList[rand.Next(pProfileList.Count)];
-    cPly = Game.CreatePlayer(new Vector2((float)rand.Next(-140, 140), 160f));
+    IProfile cProfile = pProfileList[rand.Next(pProfileList.Count)];
+    IPlayer cPly = Game.CreatePlayer(new Vector2((float)rand.Next((int)Game.GetBorderArea().Left, (int)Game.GetBorderArea().Right), (int)Game.GetBorderArea().Top + DISTANCE_FROM_TOP));
     cPly.SetProfile(cProfile);
     cPly.SetLinearVelocity(new Vector2((float)rand.Next(-20, 20), (float)rand.Next(-20, 10)));
     cPly.Kill();
 
-    DeathSentences.Add(new DeathSentence((IObject)cPly, 2000));
+    DeathSentences.Add(new DeathSentence((IObject)cPly, dropsLifeTime));
 }
 
 public void CheckDeathSentences(TriggerArgs args){
     try{
-        foreach (DeathSentence death in DeathSentences){
-            if(death.HasDied()){
-                death.RemoveObject();
-                DeathSentences.Remove(death);
+        foreach (DeathSentence hit in DeathSentences){
+            if(hit.MustDie()){
+                hit.Kill();
+                DeathSentences.Remove(hit);
             }
         }
     }catch(Exception e){
@@ -96,7 +135,7 @@ private class DeathSentence{
         this.controlTime = lifetime;
     }
 
-    public bool HasDied(){
+    public bool MustDie(){
         if(Game.TotalElapsedGameTime - this.lifetime > this.controlTime){
             return true;
         }
@@ -105,7 +144,7 @@ private class DeathSentence{
         }
     }
 
-    public void RemoveObject(){
+    public void Kill(){
         this.obj.Remove();
         this.obj.Destroy();
     }
@@ -113,14 +152,14 @@ private class DeathSentence{
 
 private class Utils{
     //Sets a timer
-    private static IObjectTimerTrigger tTrigger;
+    private static IObjectTimerTrigger tickTrigger;
     public static IObjectTimerTrigger SetTimer(string met, string id, int times, int delay){
-        tTrigger = (IObjectTimerTrigger)Game.CreateObject("TimerTrigger");
-        tTrigger.CustomId = id;
-        tTrigger.SetScriptMethod(met);
-        tTrigger.SetIntervalTime(delay);
-        tTrigger.SetRepeatCount(times);
-        tTrigger.Trigger();
-        return tTrigger;
+        tickTrigger = (IObjectTimerTrigger)Game.CreateObject("TimerTrigger");
+        tickTrigger.CustomId = id;
+        tickTrigger.SetScriptMethod(met);
+        tickTrigger.SetIntervalTime(delay);
+        tickTrigger.SetRepeatCount(times);
+        tickTrigger.Trigger();
+        return tickTrigger;
     }
 }
