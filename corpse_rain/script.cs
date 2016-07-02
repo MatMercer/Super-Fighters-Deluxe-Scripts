@@ -19,7 +19,8 @@ int dropsLifeTime = 2000;
 // Remove the "//" in the line
 // to select which objects
 string[] rainDrops = {
-    "PLAYER"
+    "PLAYER",
+    "BarrelExplosive"
 };
 
 // Script vars
@@ -75,6 +76,9 @@ public void SpawnDrop(string name) {
     if(name == "PLAYER") {
         SpawnRandomPlayer();
     }
+    else {
+        SpawnObject(name);
+    }
 }
 
 // Randomize the rain
@@ -85,6 +89,7 @@ public void RandomizeDelay(TriggerArgs args){
 
 // Spawns a dead players
 // based in the map top
+// TODO: add custom drop speed
 public void SpawnRandomPlayer(){
     // Stops on gameover?
     // TODO: add an option to disable this
@@ -97,7 +102,20 @@ public void SpawnRandomPlayer(){
     cPly.SetLinearVelocity(new Vector2((float)rand.Next(-20, 20), (float)rand.Next(-20, 10)));
     cPly.Kill();
 
-    DeathSentences.Add(new DeathSentence((IObject)cPly, dropsLifeTime));
+    AddHit((IObject)cPly);
+}
+
+// Spawns a object
+// based in the map top
+public void SpawnObject(string name) {
+    IObject obj = Game.CreateObject(name, new Vector2((float)rand.Next((int)Game.GetBorderArea().Left, (int)Game.GetBorderArea().Right), (int)Game.GetBorderArea().Top + DISTANCE_FROM_TOP), 0, new Vector2((float)rand.Next(-20, 20), (float)rand.Next(-20, 10)), 2f);
+    AddHit(obj);
+}
+
+// Adds a object to be removed
+// after some time in the game
+public void AddHit(IObject obj) {
+    DeathSentences.Add(new DeathSentence(obj, dropsLifeTime));
 }
 
 // Checks if some objects must
@@ -142,6 +160,8 @@ public void DeleteGlibets(TriggerArgs args){
 
 // A class used to control the objects
 // life time
+// TODO: Add an option to remove or
+// destroy the objects
 private class DeathSentence{
     private IObject obj;
     private float lifetime;
