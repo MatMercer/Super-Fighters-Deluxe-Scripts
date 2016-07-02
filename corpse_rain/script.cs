@@ -1,4 +1,7 @@
 // Settings vars
+// Stop teh rain on gameover?
+bool stopOnGameOver = true;
+
 // Primary tick speed ratio,
 // affects the rain strenght
 int[] tickRand = {200, 900};
@@ -26,12 +29,10 @@ string[] rainDrops = {
 // Sets the drops speed rand
 int[] rainDropsSpeed = {-20, 20};
 
-// Sets the drop angualar velocity
+// Sets the drop angular velocity
 // (only for objects, players wont be
 // affected)
 int[] rainDropsAngularSpeed = {-10, 10};
-
-
 
 // Script vars
 
@@ -40,7 +41,7 @@ int[] rainDropsAngularSpeed = {-10, 10};
 private static List<IProfile> pProfileList = new List<IProfile>();
 
 // Death sentences object, used to delete objects after some time
-private static List<DeathSentence> DeathSentences = new List<DeathSentence>();
+private static List<Hit> hits = new List<Hit>();
 
 // Tick trigger
 private IObjectTimerTrigger tickTrigger;
@@ -70,14 +71,17 @@ public void OnStartup(){
     tickTrigger = Utils.SetTimer("Tick", "", 0, rand.Next(tickRand[0], tickRand[1]));
     randomizeTimeTrigger = Utils.SetTimer("RandomizeDelay", "", rainStageRand[0], rainStageRand[1]);
     Utils.SetTimer("DeleteGlibets", "", 0, 5000);
-    Utils.SetTimer("CheckDeathSentences", "", 0, 100);
+    Utils.SetTimer("CheckHits", "", 0, 100);
 
     //Game.CreatePlayer(Game.GetSingleObjectByCustomID("spawn").GetWorldPosition());
 }
 
 // Main tick
 public void Tick(TriggerArgs args){
-   SpawnDrop(rainDrops[rand.Next(0, rainDrops.Length)]);
+    //Stop on gameover?
+    if(!(Game.IsGameOver && stopOnGameOver)) {
+        SpawnDrop(rainDrops[rand.Next(0, rainDrops.Length)]);
+    }
 }
 
 // Tells which object will be spawned
@@ -100,11 +104,6 @@ public void RandomizeDelay(TriggerArgs args){
 // Spawns a dead players
 // based in the map top
 public void SpawnRandomPlayer(){
-    // Stops on gameover?
-    // TODO: add an option to disable this
-    if(Game.IsGameOver){
-        return;
-    }
     IProfile cProfile = pProfileList[rand.Next(pProfileList.Count)];
     IPlayer cPly = Game.CreatePlayer(new Vector2((float)rand.Next((int)Game.GetBorderArea().Left, (int)Game.GetBorderArea().Right), (int)Game.GetBorderArea().Top + DISTANCE_FROM_TOP));
     cPly.SetProfile(cProfile);
@@ -124,17 +123,17 @@ public void SpawnObject(string name) {
 // Adds a object to be removed
 // after some time in the game
 public void AddHit(IObject obj) {
-    DeathSentences.Add(new DeathSentence(obj, dropsLifeTime));
+    hits.Add(new Hit(obj, dropsLifeTime));
 }
 
 // Checks if some objects must
 // be removed after the delays
-public void CheckDeathSentences(TriggerArgs args){
+public void CheckHits(TriggerArgs args){
     try{
-        foreach (DeathSentence hit in DeathSentences){
+        foreach (Hit hit in hits){
             if(hit.MustDie()){
                 hit.Kill();
-                DeathSentences.Remove(hit);
+                hits.Remove(hit);
             }
         }
     }catch(Exception e){
@@ -171,12 +170,12 @@ public void DeleteGlibets(TriggerArgs args){
 // life time
 // TODO: Add an option to remove or
 // destroy the objects
-private class DeathSentence{
+private class Hit{
     private IObject obj;
     private float lifetime;
     private float controlTime;
 
-    public DeathSentence(IObject obj, float lifetime){
+    public Hit(IObject obj, float lifetime){
         this.obj = obj;
         this.lifetime = Game.TotalElapsedGameTime + lifetime;
         this.controlTime = lifetime;
