@@ -173,8 +173,6 @@ public void DeleteGlibets(TriggerArgs args){
 
 // A class used to control the objects
 // life time
-// TODO: Add an option to remove or
-// destroy the objects
 private class Hit{
     private IObject obj;
     private float lifetime;
