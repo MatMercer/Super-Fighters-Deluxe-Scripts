@@ -171,14 +171,13 @@ private class DeathSentence{
 // Utils class
 private class Utils{
     //Sets a timer
-    private static IObjectTimerTrigger tickTrigger;
     public static IObjectTimerTrigger SetTimer(string met, string id, int times, int delay){
-        IObjectTimerTrigger tickTrigger = (IObjectTimerTrigger)Game.CreateObject("TimerTrigger");
-        tickTrigger.CustomId = id;
-        tickTrigger.SetScriptMethod(met);
-        tickTrigger.SetIntervalTime(delay);
-        tickTrigger.SetRepeatCount(times);
-        tickTrigger.Trigger();
-        return tickTrigger;
+        IObjectTimerTrigger trigger = (IObjectTimerTrigger)Game.CreateObject("TimerTrigger");
+        trigger.CustomId = id;
+        trigger.SetScriptMethod(met);
+        trigger.SetIntervalTime(delay);
+        trigger.SetRepeatCount(times);
+        trigger.Trigger();
+        return trigger;
     }
 }
