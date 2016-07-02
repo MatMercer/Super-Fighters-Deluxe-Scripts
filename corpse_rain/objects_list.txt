@@ -172,11 +172,6 @@ LightSign00O
 LightSign00T
 XmasPresent00
 XmasTree
-Giblet00
-Giblet01
-Giblet02
-Giblet03
-Giblet04
 ChairLeg
 
 # DEBRIS #
@@ -237,3 +232,8 @@ LightSign00O_D
 LightSign00T_D
 XmasTree_D
 Bottle00Broken
+Giblet00
+Giblet01
+Giblet02
+Giblet03
+Giblet04

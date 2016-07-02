@@ -1,5 +1,41 @@
+/*    
+  __  __                                          _     
+ |  \/  |      /\                                ( )    
+ | \  / |_ __ /  \   _ __  _   _  ___  _ __   ___|/ ___ 
+ | |\/| | '__/ /\ \ | '_ \| | | |/ _ \| '_ \ / _ \ / __|
+ | |  | | | / ____ \| | | | |_| | (_) | | | |  __/ \__ \
+ |_|  |_|_|/_/    \_\_| |_|\__, |\___/|_| |_|\___| |___/
+                            __/ |                       
+  _____       _          __|___/         _       _      
+ |  __ \     (_)        / ____|         (_)     | |     
+ | |__) |__ _ _ _ __   | (___   ___ _ __ _ _ __ | |_    
+ |  _  // _` | | '_ \   \___ \ / __| '__| | '_ \| __|   
+ | | \ \ (_| | | | | |  ____) | (__| |  | | |_) | |_    
+ |_|  \_\__,_|_|_| |_| |_____/ \___|_|  |_| .__/ \__|   
+                                          | |           
+                                          |_|        
+                             000      00
+                           0000000   0000
+              0      00  00000000000000000
+            0000 0  000000000000000000000000       0
+         000000000000000000000000000000000000000 000
+        0000000000000000000000000000000000000000000000
+    000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000
+              / / / / / / / / / / / / / / / /
+            / / / / / / / / / / / / / / /
+            / / / / / / / / / / / / / / /
+          / / / / / / / / / / / / / /
+          / / / / / / / / / / / / /
+        / / / / / / / / / / / /
+        / / / / / / / / / /
+
+         ...........RUN FOR YOUR LIVES!.
+                                                  
+*/
+
 // Settings vars
-// Stop teh rain on gameover?
+// Stop the rain on gameover?
 bool stopOnGameOver = true;
 
 // Primary tick speed ratio,
@@ -21,6 +57,10 @@ int dropsLifeTime = 2000;
 // removed
 static bool destroyOnDeath = false;
 
+// Remove or not junk
+// objects
+bool removeJunk = true;
+
 // Sets the drops speed rand
 int[] rainDropsSpeed = {-20, 20};
 
@@ -38,7 +78,7 @@ int[] rainDropsAngularSpeed = {-10, 10};
 // A COMMA IN THE END
 // as follow: array {
 //      "firsts",
-//        "last"    
+//      "last"    
 // }
 string[] rainDrops = {
       "PLAYER",
@@ -296,6 +336,71 @@ private IObjectTimerTrigger tickTrigger;
 // make the rain more dynamic
 private IObjectTimerTrigger randomizeTimeTrigger;
 
+// A black list to remove
+// junk objects
+string[] blackList = {
+    "CueStick00Debris",
+    "Suitcase00Debris1",
+    "Suitcase00Debris2",
+    "LightSign00Debris1",
+    "StoneDebris00A",
+    "StoneDebris00B",
+    "StoneDebris00C",
+    "StoneDebris00D",
+    "StoneDebris00E",
+    "MetalDebris00A",
+    "MetalDebris00B",
+    "MetalDebris00C",
+    "MetalDebris00D",
+    "MetalDebris00E",
+    "WoodBarrelDebris00A",
+    "WoodBarrelDebris00B",
+    "WoodBarrelDebris00C",
+    "WoodDebris00A",
+    "WoodDebris00B",
+    "WoodDebris00C",
+    "WoodDebris00D",
+    "WoodDebris00E",
+    "WoodDebrisTable00A",
+    "WoodDebrisTable00B",
+    "GlassShard00A",
+    "AtlasStatue00_D",
+    "Balloon00_D",
+    "Monitor00_D",
+    "CardboardBox00_D",
+    "CrabCan00_D",
+    "GasLamp00_D",
+    "Cage00_D",
+    "Duct00C_D",
+    "CarnivalCart01_D",
+    "Gargoyle00_D",
+    "HangingLamp00_D",
+    "Lamp00_D",
+    "Lamp01_D",
+    "MetalRailing00_D",
+    "Padlock00_D",
+    "Piano00_D",
+    "Spotlight00A_D",
+    "TinRoof00_D",
+    "Trashcan00_D",
+    "WindMillSail00_D",
+    "WindMillSail00_D2",
+    "WiringTube00A_D",
+    "WoodAwning00B_D",
+    "LightSign00E_D",
+    "LightSign00H_D",
+    "LightSign00L_D",
+    "LightSign00O_D",
+    "LightSign00T_D",
+    "XmasTree_D",
+    "Bottle00Broken",
+    "Giblet00",
+    "Giblet01",
+    "Giblet02",
+    "Giblet03",
+    "Giblet04"
+};
+
 //Rand
 Random rand = new Random();
 
@@ -316,7 +421,7 @@ public void OnStartup(){
     // Setup the triggers
     tickTrigger = Utils.SetTimer("Tick", "", 0, rand.Next(tickRand[0], tickRand[1]));
     randomizeTimeTrigger = Utils.SetTimer("RandomizeDelay", "", rainStageRand[0], rainStageRand[1]);
-    Utils.SetTimer("DeleteGlibets", "", 0, 5000);
+    Utils.SetTimer("DeleteTash", "", 0, 20000);
     Utils.SetTimer("CheckHits", "", 0, 100);
 
     //Game.CreatePlayer(Game.GetSingleObjectByCustomID("spawn").GetWorldPosition());
@@ -389,26 +494,11 @@ public void CheckHits(TriggerArgs args){
 
 // Deletes trash objects
 // from the map
-// TODO: add all objects, not only glibets
-public void DeleteGlibets(TriggerArgs args){
-    foreach (IObject obj in Game.GetObjectsByName("Giblet00")){
-        obj.Remove();
-    }
-
-    foreach (IObject obj in Game.GetObjectsByName("Giblet01")){
-        obj.Remove();
-    }
-
-    foreach (IObject obj in Game.GetObjectsByName("Giblet02")){
-        obj.Remove();
-    }
-
-    foreach (IObject obj in Game.GetObjectsByName("Giblet03")){
-        obj.Remove();
-    }
-
-    foreach (IObject obj in Game.GetObjectsByName("Giblet04")){
-        obj.Remove();
+public void DeleteTash(TriggerArgs args){
+    if(removeJunk) {
+        foreach (IObject obj in Game.GetObjectsByName(blackList)){
+            obj.Remove();
+        }
     }
 }
 
