@@ -45,6 +45,8 @@ Random rand = new Random();
 const float DISTANCE_FROM_TOP = 50f;
 
 public void OnStartup(){
+    // Get the profiles, from players
+    // & custom ones
     foreach(IObjectPlayerProfileInfo pInfo in Game.GetObjectsByName("PlayerProfileInfo")){
         pProfileList.Add(pInfo.GetProfile());
     }
@@ -53,6 +55,7 @@ public void OnStartup(){
         pProfileList.Add(ply.GetProfile());
     }
 
+    // Setup the triggers
     tickTrigger = Utils.SetTimer("Tick", "", 0, rand.Next(tickRand[0], tickRand[1]));
     randomizeTimeTrigger = Utils.SetTimer("RandomizeDelay", "", rainStageRand[0], rainStageRand[1]);
     Utils.SetTimer("DeleteGlibets", "", 0, 5000);
@@ -61,22 +64,30 @@ public void OnStartup(){
     //Game.CreatePlayer(Game.GetSingleObjectByCustomID("spawn").GetWorldPosition());
 }
 
+// Main tick
 public void Tick(TriggerArgs args){
    SpawnDrop(rainDrops[rand.Next(0, rainDrops.Length)]);
 }
 
+// Tells which object will be spawned
+// PLAYER flags spawns a corpse
 public void SpawnDrop(string name) {
     if(name == "PLAYER") {
         SpawnRandomPlayer();
     }
 }
 
+// Randomize the rain
 public void RandomizeDelay(TriggerArgs args){
     tickTrigger.SetIntervalTime(rand.Next(tickRand[0], tickRand[1]));
     randomizeTimeTrigger.SetIntervalTime(rand.Next(rainStageRand[0], rainStageRand[1]));
 }
 
+// Spawns a dead players
+// based in the map top
 public void SpawnRandomPlayer(){
+    // Stops on gameover?
+    // TODO: add an option to disable this
     if(Game.IsGameOver){
         return;
     }
@@ -89,6 +100,8 @@ public void SpawnRandomPlayer(){
     DeathSentences.Add(new DeathSentence((IObject)cPly, dropsLifeTime));
 }
 
+// Checks if some objects must
+// be removed after the delays
 public void CheckDeathSentences(TriggerArgs args){
     try{
         foreach (DeathSentence hit in DeathSentences){
@@ -102,6 +115,9 @@ public void CheckDeathSentences(TriggerArgs args){
     }
 }
 
+// Deletes trash objects
+// from the map
+// TODO: add all objects, not only glibets
 public void DeleteGlibets(TriggerArgs args){
     foreach (IObject obj in Game.GetObjectsByName("Giblet00")){
         obj.Remove();
@@ -124,6 +140,8 @@ public void DeleteGlibets(TriggerArgs args){
     }
 }
 
+// A class used to control the objects
+// life time
 private class DeathSentence{
     private IObject obj;
     private float lifetime;
@@ -150,11 +168,12 @@ private class DeathSentence{
     }
 }
 
+// Utils class
 private class Utils{
     //Sets a timer
     private static IObjectTimerTrigger tickTrigger;
     public static IObjectTimerTrigger SetTimer(string met, string id, int times, int delay){
-        tickTrigger = (IObjectTimerTrigger)Game.CreateObject("TimerTrigger");
+        IObjectTimerTrigger tickTrigger = (IObjectTimerTrigger)Game.CreateObject("TimerTrigger");
         tickTrigger.CustomId = id;
         tickTrigger.SetScriptMethod(met);
         tickTrigger.SetIntervalTime(delay);
