@@ -1,6 +1,6 @@
 // Settings vars
 // Primary tick speed ratio,
-// affects the rain delay
+// affects the rain strenght
 int[] tickRand = {200, 900};
 
 // Changes the 'rain stage' after
@@ -22,6 +22,16 @@ string[] rainDrops = {
     "PLAYER",
     "BarrelExplosive"
 };
+
+// Sets the drops speed rand
+int[] rainDropsSpeed = {-20, 20};
+
+// Sets the drop angualar velocity
+// (only for objects, players wont be
+// affected)
+int[] rainDropsAngularSpeed = {-10, 10};
+
+
 
 // Script vars
 
@@ -89,7 +99,6 @@ public void RandomizeDelay(TriggerArgs args){
 
 // Spawns a dead players
 // based in the map top
-// TODO: add custom drop speed
 public void SpawnRandomPlayer(){
     // Stops on gameover?
     // TODO: add an option to disable this
@@ -99,7 +108,7 @@ public void SpawnRandomPlayer(){
     IProfile cProfile = pProfileList[rand.Next(pProfileList.Count)];
     IPlayer cPly = Game.CreatePlayer(new Vector2((float)rand.Next((int)Game.GetBorderArea().Left, (int)Game.GetBorderArea().Right), (int)Game.GetBorderArea().Top + DISTANCE_FROM_TOP));
     cPly.SetProfile(cProfile);
-    cPly.SetLinearVelocity(new Vector2((float)rand.Next(-20, 20), (float)rand.Next(-20, 10)));
+    cPly.SetLinearVelocity(new Vector2((float)rand.Next(rainDropsSpeed[0], rainDropsSpeed[1]), (float)rand.Next(rainDropsSpeed[0], rainDropsSpeed[1])));
     cPly.Kill();
 
     AddHit((IObject)cPly);
@@ -108,7 +117,7 @@ public void SpawnRandomPlayer(){
 // Spawns a object
 // based in the map top
 public void SpawnObject(string name) {
-    IObject obj = Game.CreateObject(name, new Vector2((float)rand.Next((int)Game.GetBorderArea().Left, (int)Game.GetBorderArea().Right), (int)Game.GetBorderArea().Top + DISTANCE_FROM_TOP), 0, new Vector2((float)rand.Next(-20, 20), (float)rand.Next(-20, 10)), 2f);
+    IObject obj = Game.CreateObject(name, new Vector2((float)rand.Next((int)Game.GetBorderArea().Left, (int)Game.GetBorderArea().Right), (int)Game.GetBorderArea().Top + DISTANCE_FROM_TOP), 0, new Vector2((float)rand.Next(rainDropsSpeed[0], rainDropsSpeed[1]), (float)rand.Next(rainDropsSpeed[0], rainDropsSpeed[1])), (float)rand.Next(rainDropsAngularSpeed[0], rainDropsAngularSpeed[1]));
     AddHit(obj);
 }
 
