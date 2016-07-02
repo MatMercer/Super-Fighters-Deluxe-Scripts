@@ -424,6 +424,12 @@ public void OnStartup(){
     Utils.SetTimer("DeleteTash", "", 0, 20000);
     Utils.SetTimer("CheckHits", "", 0, 100);
 
+    Utils.SendMessage("Welcome to rain script!");
+    Utils.SendMessage("Made by: MrAnyone.");
+    Utils.SendMessage("Contact me at: m3rc3r99@gmail.com");
+    Utils.SendMessage("There are a LOT of settings you can setup.");
+
+
     //Game.CreatePlayer(Game.GetSingleObjectByCustomID("spawn").GetWorldPosition());
 }
 
@@ -545,5 +551,8 @@ private class Utils{
         trigger.SetRepeatCount(times);
         trigger.Trigger();
         return trigger;
+    }
+    public static void SendMessage(string msg){
+        Game.RunCommand("/MSG |RAIN MOD| " + msg);
     }
 }
