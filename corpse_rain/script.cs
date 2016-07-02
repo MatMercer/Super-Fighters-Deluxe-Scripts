@@ -16,6 +16,11 @@ int[] rainStageRand = {3000, 5000};
 // XXX miliseconds
 int dropsLifeTime = 2000;
 
+// Destroys or remove the
+// objects when they are
+// removed
+static bool destroyOnDeath = false;
+
 // Objects that will rain list
 // "PLAYER" is a special flag
 // to make a player rain
@@ -191,8 +196,12 @@ private class Hit{
     }
 
     public void Kill(){
-        this.obj.Remove();
-        this.obj.Destroy();
+        if(destroyOnDeath) {
+            this.obj.Destroy();
+        }
+        else {
+            this.obj.Remove();
+        }
     }
 }
 
